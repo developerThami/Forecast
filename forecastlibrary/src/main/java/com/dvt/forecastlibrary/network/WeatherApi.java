@@ -10,6 +10,7 @@ public interface WeatherApi {
 
     @GET("/data/2.5/weather")
     Single<WeatherResponse> getCurrentWeather(@Query("lat") String latitude,
-                                            @Query("lon") String longitude,
-                                            @Query("appid") String appId);
+                                              @Query("lon") String longitude,
+                                              @Query("appid") String appId,
+                                              @Query("units") String units);
 }

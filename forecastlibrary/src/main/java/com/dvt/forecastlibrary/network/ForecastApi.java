@@ -10,5 +10,6 @@ public interface ForecastApi {
     @GET("/data/2.5/forecast")
     Single<ForecastResponse> get5DayForecast(@Query("lat") String latitude,
                                              @Query("lon") String longitude,
-                                             @Query("appid") String appId);
+                                             @Query("appid") String appId,
+                                             @Query("units") String units);
 }

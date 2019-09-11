@@ -18,9 +18,13 @@ class RetrofitForecastClient {
     private var forecastApi: ForecastApi
     private var weatherApi:WeatherApi
 
+    private val appId = "24262fedf640971dde9ca5aed73db2b4"
+
     init {
-        //todo update to use api url
-        val baseUrl = "https://samples.openweathermap.org/"
+
+
+        val baseUrl = "https://api.openweathermap.org/"
+
         val gson = GsonBuilder().setLenient().create()
 
         val okHttpClient = OkHttpClient.Builder()
@@ -38,12 +42,12 @@ class RetrofitForecastClient {
         weatherApi = retrofit.create(WeatherApi::class.java)
     }
 
-    fun fetchForecast(latitude: String, longitude: String, appId: String): Single<ForecastResponse> {
-        return forecastApi.get5DayForecast(latitude, longitude, appId)
+    fun fetchForecast(latitude: String, longitude: String): Single<ForecastResponse> {
+        return forecastApi.get5DayForecast(latitude, longitude, appId, "metric")
     }
 
-    fun fetchCurrentWeather(latitude: String, longitude: String, appId: String): Single<WeatherResponse> {
-        return weatherApi.getCurrentWeather(latitude, longitude, appId)
+    fun fetchCurrentWeather(latitude: String, longitude: String): Single<WeatherResponse> {
+        return weatherApi.getCurrentWeather(latitude, longitude, appId,"metric")
     }
 
 }

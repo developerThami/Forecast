@@ -3,10 +3,12 @@ package com.dvt.forecast
 import android.Manifest.permission.*
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,8 +20,12 @@ import com.google.android.gms.location.*
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.temperature_information.*
 import java.text.SimpleDateFormat
 import java.util.*
+import com.dvt.forecastlibrary.network.response.model.Forecast
+import com.dvt.forecastlibrary.network.response.model.MainInformation
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -59,12 +65,10 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("CheckResult")
     private fun fetchForecast(location: Location) {
 
-        val appId = "b6907d289e10d714a6e88b30761fae22"
-
         val latitude = location.latitude.toString()
         val longitude = location.longitude.toString()
 
-        RetrofitForecastClient().fetchForecast(latitude, longitude, appId)
+        RetrofitForecastClient().fetchForecast(latitude, longitude)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { forecastResponse, throwable ->
@@ -85,12 +89,10 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("CheckResult")
     private fun fetchCurrentWeather(location: Location) {
 
-        val appId = "b6907d289e10d714a6e88b30761fae22"
-
         val latitude = location.latitude.toString()
         val longitude = location.longitude.toString()
 
-        RetrofitForecastClient().fetchCurrentWeather(latitude, longitude, appId)
+        RetrofitForecastClient().fetchCurrentWeather(latitude, longitude)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { response, throwable ->
@@ -115,57 +117,37 @@ class MainActivity : AppCompatActivity() {
 
         val weatherInfo = weather[0]
 
-        when(weatherInfo.main.toLowerCase()){
+        val displayTemperature = String.format("%s %s", mainInformation.tempurature, "\u00B0")
+
+        when (weatherInfo.main.toLowerCase()) {
 
             "rain" -> {
-                val backgroundImageDrawable = ContextCompat.getDrawable(this, R.drawable.forest_rainy)
-                weather_background.setImageDrawable(backgroundImageDrawable)
 
                 val color = ContextCompat.getColor(this, R.color.rainy)
-                temperature_information.setBackgroundColor(color)
-                weather_list.setBackgroundColor(color)
+                val backgroundImageDrawable = ContextCompat.getDrawable(this, R.drawable.forest_rainy)
 
-                val displayTemperature = String.format("%s %s", mainInformation.tempurature, "\u00B0")
-                current_temperature.text = displayTemperature
-                temperature_description.text = "RAINY"
+                showCurrentWeatherInformation(color, "RAINY", displayTemperature, backgroundImageDrawable!!)
             }
 
-            "clear"->{
-                val backgroundImageDrawable = ContextCompat.getDrawable(this, R.drawable.forest_sunny)
-                weather_background.setImageDrawable(backgroundImageDrawable)
-
+            "clear" -> {
                 val color = ContextCompat.getColor(this, R.color.sunny)
-                temperature_information.setBackgroundColor(color)
-                weather_list.setBackgroundColor(color)
+                val backgroundImageDrawable = ContextCompat.getDrawable(this, R.drawable.forest_sunny)
 
-                val displayTemperature = String.format("%s %s", mainInformation.tempurature, "\u00B0")
-                current_temperature.text = displayTemperature
-                temperature_description.text = "SUNNY"
+                showCurrentWeatherInformation(color, "SUNNY", displayTemperature, backgroundImageDrawable!!)
 
             }
-
-            "clouds"->{
-                val backgroundImageDrawable = ContextCompat.getDrawable(this, R.drawable.forest_cloudy)
-                weather_background.setImageDrawable(backgroundImageDrawable)
-
+            "clouds" -> {
                 val color = ContextCompat.getColor(this, R.color.cloudy)
-                temperature_information.setBackgroundColor(color)
-                weather_list.setBackgroundColor(color)
+                val backgroundImageDrawable = ContextCompat.getDrawable(this, R.drawable.forest_cloudy)
 
-                val displayTemperature = String.format("%s %s", mainInformation.tempurature, "\u00B0")
-                current_temperature.text = displayTemperature
-                temperature_description.text = "CLOUDY"
+                showCurrentWeatherInformation(color, "CLOUDY", displayTemperature, backgroundImageDrawable!!)
             }
         }
-
 
 
         val currentTemperature = mainInformation.tempurature
         val minTemperature = mainInformation.minimumTempurature
         val maxTemperature = mainInformation.maximumTempurature
-
-        val date = Date(response.dt * 1000)
-        val formattedDate = SimpleDateFormat("EEEE").format(date)
 
         val formattedTemperature = String.format("%s %s", currentTemperature, "\u00B0")
         val formattedMinTemperature = String.format("%s %s", minTemperature, "\u00B0")
@@ -174,6 +156,22 @@ class MainActivity : AppCompatActivity() {
         temperature.text = formattedTemperature
         min_temperature.text = formattedMinTemperature
         max_temperature.text = formattedMaxTemperature
+    }
+
+    private fun showCurrentWeatherInformation(
+        color: Int,
+        temperatureDescription: String,
+        temperature: String,
+        backgroundDrawable: Drawable
+    ) {
+
+        weather_background.setImageDrawable(backgroundDrawable)
+
+        temperature_information.setBackgroundColor(color)
+        weather_list.setBackgroundColor(color)
+
+        current_temperature.text = temperature
+        temperature_description.text = temperatureDescription
     }
 
     private fun requestLocationUpdates() {
@@ -203,7 +201,28 @@ class MainActivity : AppCompatActivity() {
 
     private fun onForecastResponse(forecastResponse: ForecastResponse) {
 
-        weatherAdapter.setForecastList(forecastResponse.forecast)
+        progressBar.visibility = View.GONE
+
+        val forecastList: List<Forecast> = forecastResponse.forecast
+
+        val list: MutableList<Forecast> = mutableListOf()
+        val daysOfTheWeek: MutableList<String> = mutableListOf()
+
+        forecastList.forEach { forecast ->
+
+            val date = Date(forecast.dt * 1000)
+            val dayOfTheWeek = SimpleDateFormat("EEEE").format(date)
+
+            val timeOfDay = SimpleDateFormat("HH:mm:ss").format(date)
+
+            if (!daysOfTheWeek.contains(dayOfTheWeek)) {
+                daysOfTheWeek.add(dayOfTheWeek)
+                list.add(forecast)
+            }
+
+        }
+
+        weatherAdapter.setForecastList(list)
         weatherAdapter.notifyDataSetChanged()
 
     }
