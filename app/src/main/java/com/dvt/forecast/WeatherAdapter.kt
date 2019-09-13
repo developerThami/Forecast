@@ -17,15 +17,10 @@ import com.dvt.forecastlibrary.network.response.model.Weather
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class WeatherAdapter : RecyclerView.Adapter<WeatherAdapter.ItemViewHolder> {
+class WeatherAdapter(private var forecastList: List<Forecast>) : RecyclerView.Adapter<WeatherAdapter.ItemViewHolder>() {
 
-    private var forecastList: List<Forecast>
     private lateinit var context: Context
 
-
-    constructor(forecastList: List<Forecast>) {
-        this.forecastList = forecastList
-    }
 
     fun setForecastList(forecastList: List<Forecast>) {
         this.forecastList = forecastList
@@ -42,11 +37,11 @@ class WeatherAdapter : RecyclerView.Adapter<WeatherAdapter.ItemViewHolder> {
     }
 
     override fun onBindViewHolder(itemViewHolder: ItemViewHolder, i: Int) {
-        itemViewHolder.bind(forecastList!![i])
+        itemViewHolder.bind(forecastList[i])
     }
 
     override fun getItemCount(): Int {
-        return forecastList!!.size
+        return forecastList.size
     }
 
     inner class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -55,7 +50,6 @@ class WeatherAdapter : RecyclerView.Adapter<WeatherAdapter.ItemViewHolder> {
         private val weatherIconIv: ImageView = itemView.findViewById(R.id.weather_icon)
         private val temperatureTv: TextView = itemView.findViewById(R.id.temperature)
 
-        @SuppressLint("SimpleDateFormat")
         fun bind(forecast: Forecast) {
 
             val mainInformation = forecast.mainInformation
