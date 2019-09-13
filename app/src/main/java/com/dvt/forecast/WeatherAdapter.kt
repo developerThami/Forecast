@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.dvt.forecastlibrary.network.response.model.Forecast
 import com.dvt.forecastlibrary.network.response.model.MainInformation
@@ -18,24 +19,12 @@ import java.util.Date
 
 class WeatherAdapter : RecyclerView.Adapter<WeatherAdapter.ItemViewHolder> {
 
-    private var forecastList: List<Forecast>? = null
-    private var listener: OnItemSelectListener? = null
+    private var forecastList: List<Forecast>
+    private lateinit var context: Context
 
-    interface OnItemSelectListener {
-        fun onItemSelect(itemId: Int, itemName: String)
-    }
 
     constructor(forecastList: List<Forecast>) {
         this.forecastList = forecastList
-    }
-
-    constructor(forecastList: List<Forecast>, listener: OnItemSelectListener) {
-        this.forecastList = forecastList
-        this.listener = listener
-    }
-
-    fun setOnItemSelectListener(listener: OnItemSelectListener) {
-        this.listener = listener
     }
 
     fun setForecastList(forecastList: List<Forecast>) {
@@ -44,7 +33,7 @@ class WeatherAdapter : RecyclerView.Adapter<WeatherAdapter.ItemViewHolder> {
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): ItemViewHolder {
 
-        val context = viewGroup.context
+        context = viewGroup.context
         val inflater = LayoutInflater.from(context)
 
         val itemView = inflater.inflate(R.layout.weather_tem, viewGroup, false)
@@ -70,8 +59,6 @@ class WeatherAdapter : RecyclerView.Adapter<WeatherAdapter.ItemViewHolder> {
         fun bind(forecast: Forecast) {
 
             val mainInformation = forecast.mainInformation
-            val weather = forecast.weather
-
             val temperature = mainInformation.tempurature
 
             val date = Date(forecast.dt * 1000)
@@ -80,6 +67,26 @@ class WeatherAdapter : RecyclerView.Adapter<WeatherAdapter.ItemViewHolder> {
             dayOfForecastTv.text = formattedDate
             weatherIconIv.setImageResource(R.drawable.clear3x)
             temperatureTv.text = String.format("%s %s", temperature, "\u00B0")
+
+            val weatherInfo = forecast.weather[0]
+            when (weatherInfo.main.toLowerCase()) {
+
+                "rain" -> {
+                    val weatherIcon = ContextCompat.getDrawable(context, R.drawable.rain2x)
+                    weatherIconIv.setImageDrawable(weatherIcon)
+                }
+
+                "clear" -> {
+                    val weatherIcon = ContextCompat.getDrawable(context, R.drawable.clear2x)
+                    weatherIconIv.setImageDrawable(weatherIcon)
+                }
+
+                "clouds" -> {
+                    val weatherIcon = ContextCompat.getDrawable(context, R.drawable.partlysunny2x)
+                    weatherIconIv.setImageDrawable(weatherIcon)
+                }
+            }
+
         }
     }
 }

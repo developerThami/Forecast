@@ -24,7 +24,6 @@ import kotlinx.android.synthetic.main.temperature_information.*
 import java.text.SimpleDateFormat
 import java.util.*
 import com.dvt.forecastlibrary.network.response.model.Forecast
-import com.dvt.forecastlibrary.network.response.model.MainInformation
 
 
 class MainActivity : AppCompatActivity() {
@@ -158,12 +157,7 @@ class MainActivity : AppCompatActivity() {
         max_temperature.text = formattedMaxTemperature
     }
 
-    private fun showCurrentWeatherInformation(
-        color: Int,
-        temperatureDescription: String,
-        temperature: String,
-        backgroundDrawable: Drawable
-    ) {
+    private fun showCurrentWeatherInformation(color: Int, temperatureDescription: String, temperature: String, backgroundDrawable: Drawable) {
 
         weather_background.setImageDrawable(backgroundDrawable)
 
@@ -177,7 +171,6 @@ class MainActivity : AppCompatActivity() {
     private fun requestLocationUpdates() {
 
         val fineLocationPermissionCheck = ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION)
-        val coarseLocationPermissionCheck = ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION)
 
         if (fineLocationPermissionCheck != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(ACCESS_FINE_LOCATION), requestCode)
@@ -215,9 +208,28 @@ class MainActivity : AppCompatActivity() {
 
             val timeOfDay = SimpleDateFormat("HH:mm:ss").format(date)
 
+
             if (!daysOfTheWeek.contains(dayOfTheWeek)) {
-                daysOfTheWeek.add(dayOfTheWeek)
-                list.add(forecast)
+
+                val minTimeOfDayCalendar = Calendar.getInstance()
+                minTimeOfDayCalendar.time = SimpleDateFormat("HH:mm:ss").parse("10:00:00")
+                minTimeOfDayCalendar.add(Calendar.DATE, 1)
+
+                val maxTimeOfDayCalendar = Calendar.getInstance()
+                maxTimeOfDayCalendar.time = SimpleDateFormat("HH:mm:ss").parse("14:00:00")
+                maxTimeOfDayCalendar.add(Calendar.DATE, 1)
+
+                val currentTimeOfDaycalendar = Calendar.getInstance()
+                currentTimeOfDaycalendar.time = SimpleDateFormat("HH:mm:ss").parse(timeOfDay)
+                currentTimeOfDaycalendar.add(Calendar.DATE, 1)
+
+                val currentTimeOfDay = currentTimeOfDaycalendar.time
+                if (currentTimeOfDay.after(minTimeOfDayCalendar.time) && currentTimeOfDay.before(maxTimeOfDayCalendar.time)) {
+                    //checks whether the current time is between 14:00:00 and 10:00:00
+                    daysOfTheWeek.add(dayOfTheWeek)
+                    list.add(forecast)
+                }
+
             }
 
         }
